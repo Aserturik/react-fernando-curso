@@ -4,7 +4,8 @@ import "./App.css";
 // import './bases/03-object-literal'
 // import "./bases/04-arrays.ts";
 // import "./bases/05-functions.ts";
-import "./bases/06-obj-destructuring.ts";
+// import "./bases/06-obj-destructuring.ts";
+import "./bases/07-array-destructuring";
 
 function App() {
   return <h1>Hola mundo</h1>;
