@@ -6,11 +6,8 @@ import "./App.css";
 // import "./bases/05-functions.ts";
 // import "./bases/06-obj-destructuring.ts";
 // import "./bases/07-array-destructuring";
-import "./bases/08-imp-exp.ts";
-import { getHeroesByOwner } from "./bases/08-imp-exp.ts";
-import { Owner } from "./data/heroes.data.ts";
-
-console.log(getHeroesByOwner(Owner.Marvel));
+// import "./bases/08-imp-exp.ts";
+import "./bases/09-promises.ts";
 
 function App() {
   return <h1>Hola mundo</h1>;
