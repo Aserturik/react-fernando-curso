@@ -1,4 +1,4 @@
-import { ItemCounter } from "./shopping-cart/ItemCounter.tsx";
+import { NewItemCounter } from "./shopping-cart/NewItemCounter.tsx";
 
 interface ItemInCart {
   productName: string;
@@ -9,18 +9,15 @@ const itemsInCart: ItemInCart[] = [
   { productName: "Xbox One", quantity: 4 },
   { productName: "Play Station", quantity: 3 },
   { productName: "Nintendo Ds", quantity: 4 },
-  { productName: "Nintendo Ds", quantity: 4 },
 ];
 
 export function FirstStepsApp() {
   return (
     <>
-      <h1>
-        Carrito de compras
-      </h1>
+      <h1>Carrito de compras</h1>
 
       {itemsInCart.map(({ productName, quantity }) => (
-        <ItemCounter
+        <NewItemCounter
           key={productName}
           name={productName}
           quantity={quantity}
