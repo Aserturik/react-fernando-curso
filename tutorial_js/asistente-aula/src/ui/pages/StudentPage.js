@@ -1,6 +1,9 @@
-import { state, setState, setUI } from "../../state/state.js";
-import { rerender } from "../app.ui.js";
-import { joinSession, participate } from "../../services/session.service.js";
+// src/ui/pages/StudentPage.js
+// Panel del estudiante: captura el código de sesión y prepara el flujo para unirse (futuro async).
+
+import { state, setUI, resetApp } from "../../state/state.js";
+import { triggerRender } from "../render.js";
+import { t } from "../../i18n/i18n.js";
 
 export function createStudentPage() {
   const container = document.createElement("main");
@@ -8,76 +11,95 @@ export function createStudentPage() {
 
   const title = document.createElement("div");
   title.className = "card__title";
-  title.textContent = "Panel Estudiante";
+  title.textContent = t("student.title");
 
-  const codeInput = document.createElement("input");
-  codeInput.type = "text";
-  codeInput.placeholder = "Ingresa código de 6 dígitos";
-  codeInput.className = "input";
+  const intro = document.createElement("p");
+  intro.textContent = t("student.intro");
 
-  const btnRegister = document.createElement("button");
-  btnRegister.className = "btn btn--primary";
-  btnRegister.textContent = "Registrar asistencia";
+  const info = document.createElement("div");
+  info.className = "student-info";
+  info.textContent = getStudentInfoText();
 
-  const btnParticipate = document.createElement("button");
-  btnParticipate.className = "btn btn--primary";
-  btnParticipate.textContent = "Responder participación";
+  const field = document.createElement("div");
+  field.className = "field";
 
-  const backBtn = document.createElement("button");
-  backBtn.className = "btn";
-  backBtn.textContent = "Cambiar perfil";
+  const label = document.createElement("label");
+  label.className = "field__label";
+  label.textContent = t("student.codeLabel");
 
-  // Estado de botones
-  const hasJoined = state.studentSession && state.studentSession.status === "joined";
-  const hasParticipated = state.studentSession && state.studentSession.status === "participated";
-  btnRegister.disabled = state.ui.isLoading || hasJoined;
-  btnParticipate.disabled = state.ui.isLoading || !hasJoined || hasParticipated;
+  const input = document.createElement("input");
+  input.className = "input";
+  input.type = "text";
+  input.inputMode = "numeric";
+  input.autocomplete = "one-time-code";
+  input.placeholder = t("student.codePlaceholder");
+  input.value = state.ui?.studentCodeDraft || "";
 
-  btnRegister.addEventListener("click", async () => {
-    const code = codeInput.value.trim();
-    if (!code) {
-      setUI({ error: "Ingresa un código de sesión.", message: "" });
-      rerender();
+  input.addEventListener("input", (e) => {
+    setUI({ studentCodeDraft: String(e.target.value ?? "") });
+  });
+
+  field.append(label, input);
+
+  const btnJoin = document.createElement("button");
+  btnJoin.className = "btn btn--primary";
+  btnJoin.type = "button";
+  btnJoin.textContent = t("student.join");
+
+  btnJoin.addEventListener("click", () => {
+    const draft = String(state.ui?.studentCodeDraft || "");
+    const code = normalizeCode(draft);
+
+    if (!isValidCode(code)) {
+      setUI({
+        errorKey: "errors.invalidCode",
+        errorParams: null,
+        messageKey: "",
+        messageParams: null,
+      });
+      triggerRender();
       return;
     }
 
-    setUI({ isLoading: true, error: "", message: "Registrando asistencia…" });
-    rerender();
+    // En esta fase solo confirmamos intención (UI); no validamos contra backend aún.
+    setUI({
+      errorKey: "",
+      errorParams: null,
+      messageKey: "student.joining",
+      messageParams: null,
+    });
 
-    try {
-      const studentSession = await joinSession(code);
-      setState({ studentSession });
-      setUI({ message: "Asistencia registrada ✅", error: "" });
-    } catch (err) {
-      setUI({ error: err.message || "Error desconocido", message: "" });
-    } finally {
-      setUI({ isLoading: false });
-      rerender();
-    }
+    triggerRender();
   });
 
-  btnParticipate.addEventListener("click", async () => {
-    setUI({ isLoading: true, error: "", message: "Enviando participación…" });
-    rerender();
+  const btnBack = document.createElement("button");
+  btnBack.className = "btn btn--ghost";
+  btnBack.type = "button";
+  btnBack.textContent = t("role.changeProfile");
 
-    try {
-      const result = await participate(state.studentSession.id);
-      setState({ studentSession: { ...state.studentSession, status: "participated" } });
-      setUI({ message: "Participación enviada ✅", error: "" });
-    } catch (err) {
-      setUI({ error: err.message || "Error desconocido", message: "" });
-    } finally {
-      setUI({ isLoading: false });
-      rerender();
-    }
+  btnBack.addEventListener("click", () => {
+    resetApp();
+    setUI({ studentCodeDraft: "" });
+    triggerRender();
   });
 
-  backBtn.addEventListener("click", () => {
-    setState({ role: null, studentSession: null });
-    setUI({ isLoading: false, message: "", error: "" });
-    rerender();
-  });
-
-  container.append(title, codeInput, btnRegister, btnParticipate, backBtn);
+  container.append(title, intro, info, field, btnJoin, btnBack);
   return container;
+}
+
+function getStudentInfoText() {
+  if (state.session?.code && state.session?.status === "open") {
+    return t("student.connectedAs", { code: state.session.code });
+  }
+  return t("student.notConnected");
+}
+
+function normalizeCode(value) {
+  // Mantenerlo simple para estudiantes: elimina espacios y deja solo dígitos.
+  return String(value).trim().replace(/\s+/g, "").replace(/[^\d]/g, "");
+}
+
+function isValidCode(code) {
+  // Validación mínima y didáctica: entre 4 y 10 dígitos.
+  return typeof code === "string" && code.length >= 4 && code.length <= 10;
 }

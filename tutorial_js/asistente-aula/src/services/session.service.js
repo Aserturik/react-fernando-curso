@@ -1,93 +1,66 @@
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// src/services/session.service.js
+// Servicio simulado (mock) para practicar async/await y manejo de errores.
+// En una versión real, estas funciones harían fetch() a un backend.
+//
+// Contrato de errores:
+// - Lanzan Error con propiedad err.code = "errors.<key>" (para i18n).
 
-function makeCode() {
-  // 6 dígitos
-  return String(Math.floor(100000 + Math.random() * 900000));
+const CREATE_DELAY_MS = 600;
+const CLOSE_DELAY_MS = 500;
+
+const CREATE_FAIL_RATE = 0.25; // 25%
+const CLOSE_FAIL_RATE = 0.2; // 20%
+
+const CODE_MIN = 100000;
+const CODE_RANGE = 900000;
+
+function makeSession() {
+  return {
+    status: "open",
+    code: String(Math.floor(CODE_MIN + Math.random() * CODE_RANGE)),
+  };
 }
 
 /**
- * createSession()
- * - Representa una operación async (Promise)
- * - Puede fallar para practicar catch
+ * Crea una sesión y retorna { status: "open", code: "######" }.
+ * Puede fallar con err.code = "errors.tempCreateSession".
  */
-export function createSession() {
-  return new Promise(async (resolve, reject) => {
-    await wait(800);
+export async function createSession() {
+  await sleep(CREATE_DELAY_MS);
 
-    // 15% de probabilidad de fallo (simula error temporal)
-    if (Math.random() < 0.15) {
-      reject(new Error("Error temporal creando la sesión. Intenta de nuevo."));
-      return;
-    }
+  if (Math.random() < CREATE_FAIL_RATE) {
+    const err = new Error("TEMP_CREATE_SESSION");
+    err.code = "errors.tempCreateSession";
+    throw err;
+  }
 
-    resolve({
-      id: crypto.randomUUID(),
-      code: makeCode(),
-      status: "open",
-    });
-  });
+  return makeSession();
 }
 
-export function joinSession(code) {
-  return new Promise(async (resolve, reject) => {
-    await wait(500);
+/**
+ * Cierra una sesión existente y retorna { ...session, status: "closed" }.
+ * Puede fallar con err.code = "errors.tempCloseSession".
+ */
+export async function closeSession(session) {
+  await sleep(CLOSE_DELAY_MS);
 
-    // Simula verificar el código (en un app real, esto vendría del backend)
-    // Por ahora, acepta cualquier código de 6 dígitos si hay una sesión abierta
-    if (code.length !== 6 || isNaN(code)) {
-      reject(new Error("Código inválido. Debe ser 6 dígitos."));
-      return;
-    }
+  if (!session) {
+    // Si no hay sesión, devolvemos null para indicar "nada que cerrar".
+    return null;
+  }
 
-    // Simula fallo aleatorio
-    if (Math.random() < 0.1) {
-      reject(new Error("Error conectando. Verifica el código."));
-      return;
-    }
+  if (Math.random() < CLOSE_FAIL_RATE) {
+    const err = new Error("TEMP_CLOSE_SESSION");
+    err.code = "errors.tempCloseSession";
+    throw err;
+  }
 
-    resolve({
-      id: crypto.randomUUID(),
-      code: code,
-      status: "joined",
-      joinedAt: new Date().toISOString(),
-    });
-  });
+  return { ...session, status: "closed" };
 }
 
-export function participate(sessionId) {
-  return new Promise(async (resolve, reject) => {
-    await wait(300);
-
-    if (!sessionId) {
-      reject(new Error("No estás registrado en una sesión."));
-      return;
-    }
-
-    // Simula fallo aleatorio
-    if (Math.random() < 0.05) {
-      reject(new Error("Error enviando participación."));
-      return;
-    }
-
-    resolve({
-      sessionId,
-      participatedAt: new Date().toISOString(),
-      status: "participated",
-    });
-  });
-}
-
-export function closeSession(currentSession) {
-  return new Promise(async (resolve, reject) => {
-    await wait(600);
-
-    if (!currentSession || currentSession.status !== "open") {
-      reject(new Error("No hay una sesión abierta para cerrar."));
-      return;
-    }
-
-    resolve({ ...currentSession, status: "closed" });
-  });
+/**
+ * Helper para simular latencia (Promise).
+ */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

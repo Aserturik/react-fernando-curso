@@ -32,29 +32,9 @@
   color: var(--primary-contrast);
 }
 
-.btn--primary:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
-}
-
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* ===== Input ===== */
-.input {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #fff;
-  font-size: 16px;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--primary);
 }
 
 /* ===== Status ===== */

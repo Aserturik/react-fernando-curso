@@ -1,5 +1,9 @@
+// src/ui/pages/RolePage.js
+// Pantalla inicial: permite elegir el rol con el que se usará la app.
+
 import { setState } from "../../state/state.js";
-import { rerender } from "../app.ui.js";
+import { triggerRender } from "../render.js";
+import { t } from "../../i18n/i18n.js";
 
 export function createRolePage() {
   const container = document.createElement("main");
@@ -7,26 +11,70 @@ export function createRolePage() {
 
   const title = document.createElement("div");
   title.className = "card__title";
-  title.textContent = "Selecciona tu perfil";
+  title.textContent = t("role.title");
 
-  const btnTeacher = document.createElement("button");
-  btnTeacher.className = "btn btn--primary";
-  btnTeacher.textContent = "Docente";
+  const grid = document.createElement("div");
+  grid.className = "role-grid";
 
-  const btnStudent = document.createElement("button");
-  btnStudent.className = "btn btn--primary";
-  btnStudent.textContent = "Estudiante";
+  grid.append(
+    createRoleCard({
+      accent: "teacher",
+      shortKey: "role.teacherShort",
+      titleKey: "role.teacher",
+      descKey: "role.teacherDesc",
+      onSelect: () => selectRole("teacher"),
+    }),
+    createRoleCard({
+      accent: "student",
+      shortKey: "role.studentShort",
+      titleKey: "role.student",
+      descKey: "role.studentDesc",
+      onSelect: () => selectRole("student"),
+    }),
+  );
 
-  btnTeacher.addEventListener("click", () => {
-    setState({ role: "teacher" });
-    rerender();
-  });
-
-  btnStudent.addEventListener("click", () => {
-    setState({ role: "student" });
-    rerender();
-  });
-
-  container.append(title, btnTeacher, btnStudent);
+  container.append(title, grid);
   return container;
+}
+
+function selectRole(role) {
+  setState({ role });
+  triggerRender();
+}
+
+function createRoleCard({ accent, shortKey, titleKey, descKey, onSelect }) {
+  const title = t(titleKey);
+  const desc = t(descKey);
+
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "role-card";
+  card.dataset.accent = accent;
+  card.setAttribute("aria-label", `${title}. ${desc}`);
+
+  const head = document.createElement("div");
+  head.className = "role-card__head";
+
+  const iconEl = document.createElement("div");
+  iconEl.className = "role-card__icon role-card__icon--letter";
+  iconEl.textContent = t(shortKey);
+
+  const titleEl = document.createElement("div");
+  titleEl.className = "role-card__title";
+  titleEl.textContent = title;
+
+  head.append(iconEl, titleEl);
+
+  const descEl = document.createElement("div");
+  descEl.className = "role-card__desc";
+  descEl.textContent = desc;
+
+  const hintEl = document.createElement("div");
+  hintEl.className = "role-card__hint";
+  hintEl.textContent = t("common.tapToSelect");
+
+  card.append(head, descEl, hintEl);
+  card.addEventListener("click", onSelect);
+
+  return card;
 }
