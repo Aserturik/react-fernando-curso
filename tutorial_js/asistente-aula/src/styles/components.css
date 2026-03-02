@@ -1,0 +1,96 @@
+/* ===== Cards ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.card__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ===== Buttons ===== */
+.btn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.btn--primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Input ===== */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 16px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ===== Status ===== */
+.status {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  padding: var(--space-2);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+/* Variantes visuales */
+.status[data-variant="idle"] {
+  color: var(--muted);
+}
+
+.status[data-variant="loading"] {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.status[data-variant="ok"] {
+  border-color: #10b981;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.status[data-variant="error"] {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.status__session {
+  margin-top: var(--space-1);
+  font-weight: 600;
+}

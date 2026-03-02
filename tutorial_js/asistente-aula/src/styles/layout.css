@@ -1,0 +1,25 @@
+.app {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3);
+}
+
+.header {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.panels {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* En móvil: 1 columna (default) */
+/* En pantallas medianas: 2 columnas */
+@media (min-width: 768px) {
+  .panels {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
