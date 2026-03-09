@@ -59,6 +59,45 @@ export async function closeSession(session) {
 }
 
 /**
+ * Valida un código de sesión (mock).
+ * - Simula retraso (300-600ms).
+ * - 10% de probabilidad de error aleatorio.
+ * - Solo es válido si el código coincide exactamente con el código guardado en localStorage
+ *   que generó el Teacher.
+ * - Retorna { valid: boolean }.
+ */
+export async function validateSessionCode(code) {
+  const delay = 300 + Math.random() * 300;
+  await sleep(delay);
+
+  if (Math.random() < 0.1) {
+    const err = new Error("VALIDATION_FAILED");
+    err.code = "errors.unknown";
+    throw err;
+  }
+
+  // Recuperamos la sesión actual del "servidor" (localStorage)
+  const storedSession = localStorage.getItem("classsync_session");
+  let serverCode = null;
+
+  if (storedSession) {
+    try {
+      const parsed = JSON.parse(storedSession);
+      if (parsed.status === "open") {
+        serverCode = parsed.code;
+      }
+    } catch (e) {
+      console.error("Error parsing stored session", e);
+    }
+  }
+
+  // Es válido SI hay una sesión abierta Y el código coincide exactamente
+  const isValid = serverCode && code === serverCode;
+
+  return { valid: isValid };
+}
+
+/**
  * Helper para simular latencia (Promise).
  */
 function sleep(ms) {

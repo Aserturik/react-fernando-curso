@@ -1,9 +1,10 @@
 // src/ui/pages/StudentPage.js
 // Panel del estudiante: captura el código de sesión y prepara el flujo para unirse (futuro async).
 
-import { state, setUI, resetApp } from "../../state/state.js";
+import { state, setUI, resetApp, addLogEvent } from "../../state/state.js";
 import { triggerRender } from "../render.js";
 import { t } from "../../i18n/i18n.js";
+import { validateSessionCode } from "../../services/session.service.js";
 
 export function createStudentPage() {
   const container = document.createElement("main");
@@ -34,10 +35,26 @@ export function createStudentPage() {
   input.autocomplete = "one-time-code";
   input.placeholder = t("student.codePlaceholder");
   input.value = state.ui?.studentCodeDraft || "";
+  input.disabled = state.ui.isLoading;
 
-  input.addEventListener("input", (e) => {
-    setUI({ studentCodeDraft: String(e.target.value ?? "") });
-  });
+  // Masking logic
+  const handleInput = (e) => {
+    const raw = e.target.value ?? "";
+    const masked = raw.replace(/[^\d]/g, "").slice(0, 6);
+    
+    // Solo actualizamos el valor del DOM si es diferente para mantener el foco/cursor
+    if (e.target.value !== masked) {
+      e.target.value = masked;
+    }
+
+    // Guardamos en el estado silenciosamente (sin triggerRender para no perder el foco)
+    state.ui.studentCodeDraft = masked;
+    
+    // Habilitamos/deshabilitamos el botón manualmente para que sea instantáneo
+    updateButtonState();
+  };
+
+  input.addEventListener("input", handleInput);
 
   field.append(label, input);
 
@@ -45,31 +62,51 @@ export function createStudentPage() {
   btnJoin.className = "btn btn--primary";
   btnJoin.type = "button";
   btnJoin.textContent = t("student.join");
+  
+  const updateButtonState = () => {
+    const isFull = (state.ui.studentCodeDraft || "").length === 6;
+    btnJoin.disabled = state.ui.isLoading || !isFull;
+  };
 
-  btnJoin.addEventListener("click", () => {
-    const draft = String(state.ui?.studentCodeDraft || "");
-    const code = normalizeCode(draft);
+  // Inicializar estado del botón
+  updateButtonState();
 
-    if (!isValidCode(code)) {
-      setUI({
-        errorKey: "errors.invalidCode",
-        errorParams: null,
-        messageKey: "",
-        messageParams: null,
-      });
-      triggerRender();
-      return;
-    }
+  btnJoin.addEventListener("click", async () => {
+    const code = String(state.ui?.studentCodeDraft || "");
 
-    // En esta fase solo confirmamos intención (UI); no validamos contra backend aún.
     setUI({
+      isLoading: true,
       errorKey: "",
-      errorParams: null,
       messageKey: "student.joining",
       messageParams: null,
     });
-
     triggerRender();
+
+    try {
+      const result = await validateSessionCode(code);
+      
+      if (result.valid) {
+        setUI({
+          messageKey: "student.connectedAs",
+          messageParams: { code },
+          errorKey: "",
+        });
+        addLogEvent("log.sessionOpened", { code });
+      } else {
+        setUI({
+          errorKey: "errors.invalidCode",
+          messageKey: "",
+        });
+      }
+    } catch (err) {
+      setUI({
+        errorKey: err.code || "errors.unknown",
+        messageKey: "",
+      });
+    } finally {
+      setUI({ isLoading: false });
+      triggerRender();
+    }
   });
 
   const btnBack = document.createElement("button");
@@ -78,8 +115,8 @@ export function createStudentPage() {
   btnBack.textContent = t("role.changeProfile");
 
   btnBack.addEventListener("click", () => {
+    addLogEvent("log.backToHome");
     resetApp();
-    setUI({ studentCodeDraft: "" });
     triggerRender();
   });
 
@@ -87,19 +124,10 @@ export function createStudentPage() {
   return container;
 }
 
+
 function getStudentInfoText() {
   if (state.session?.code && state.session?.status === "open") {
     return t("student.connectedAs", { code: state.session.code });
   }
   return t("student.notConnected");
-}
-
-function normalizeCode(value) {
-  // Mantenerlo simple para estudiantes: elimina espacios y deja solo dígitos.
-  return String(value).trim().replace(/\s+/g, "").replace(/[^\d]/g, "");
-}
-
-function isValidCode(code) {
-  // Validación mínima y didáctica: entre 4 y 10 dígitos.
-  return typeof code === "string" && code.length >= 4 && code.length <= 10;
 }

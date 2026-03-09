@@ -2,14 +2,42 @@
 // Estado central de la aplicación (single source of truth).
 // Regla: la UI renderiza a partir de este objeto y solo se modifica con setState/setUI.
 
+const STORAGE_KEY = "classsync_log";
+const LOG_LIMIT = 20;
+
+function loadInitialLog() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    console.error("Error loading activity log", e);
+    return [];
+  }
+}
+
+function loadInitialSession() {
+  try {
+    const stored = localStorage.getItem("classsync_session");
+    if (!stored) return null;
+    const session = JSON.parse(stored);
+    // Solo restauramos si está abierta
+    return session.status === "open" ? session : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 export const state = {
   // Pantalla actual: null (home) | "teacher" | "student"
   role: null,
 
+  // Historial de actividad persistente
+  activityLog: loadInitialLog(),
+
   // Estado de sesión compartido entre roles (cuando aplique):
   // - code: string
   // - status: "open" | "closed" | "pending" (placeholder para futuras operaciones async)
-  session: null,
+  session: loadInitialSession(),
 
   // Estado de UI global (mensajes, errores y loading)
   ui: {
@@ -42,8 +70,6 @@ export function setState(patchOrUpdater) {
 
   // Merge superficial del estado raíz
   Object.assign(state, patch);
-
-  // Si el patch incluye ui, se recomienda usar setUI para merge controlado.
 }
 
 /**
@@ -110,4 +136,30 @@ export function flashMessageKey(messageKey, durationMs = 1500) {
       setUI({ messageKey: "", messageParams: null });
     }
   }, durationMs);
+}
+
+/**
+ * Agrega un evento al historial de actividad con persistencia y límite de 20.
+ * Usa FIFO (First-In-First-Out) para mantener el límite.
+ */
+export function addLogEvent(eventKey, params = null) {
+  const newEvent = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    key: eventKey,
+    params,
+  };
+
+  const newLog = [newEvent, ...state.activityLog].slice(0, LOG_LIMIT);
+
+  setState({ activityLog: newLog });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(newLog));
+}
+
+/**
+ * Limpia el historial de actividad.
+ */
+export function clearLog() {
+  setState({ activityLog: [] });
+  localStorage.removeItem(STORAGE_KEY);
 }

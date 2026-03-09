@@ -1,7 +1,7 @@
 // src/ui/pages/RolePage.js
 // Pantalla inicial: permite elegir el rol con el que se usará la app.
 
-import { setState } from "../../state/state.js";
+import { setState, addLogEvent } from "../../state/state.js";
 import { triggerRender } from "../render.js";
 import { t } from "../../i18n/i18n.js";
 
@@ -38,6 +38,7 @@ export function createRolePage() {
 }
 
 function selectRole(role) {
+  addLogEvent("log.roleSelected", { role: role === "teacher" ? t("role.teacher") : t("role.student") });
   setState({ role });
   triggerRender();
 }

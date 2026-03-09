@@ -45,6 +45,20 @@ export const messages = {
       closing: "Cerrando sesión…",
       createdOk: "Sesión creada ✅",
       closedOk: "Sesión cerrada ✅",
+      activityLog: "Historial de actividad",
+      clearHistory: "Limpiar historial",
+      confirmClear: "¿Estás seguro de que deseas limpiar el historial?",
+      noActivity: "No hay actividad registrada.",
+    },
+
+    log: {
+      roleSelected: "Perfil seleccionado: {role}",
+      langChanged: "Idioma cambiado a: {lang}",
+      themeChanged: "Tema cambiado a: {theme}",
+      sessionOpened: "Sesión abierta: {code}",
+      sessionClosed: "Sesión cerrada",
+      codeCopied: "Código de sesión copiado",
+      backToHome: "Regreso al inicio",
     },
 
     student: {
@@ -112,6 +126,20 @@ export const messages = {
       closing: "Closing session…",
       createdOk: "Session created ✅",
       closedOk: "Session closed ✅",
+      activityLog: "Activity Log",
+      clearHistory: "Clear History",
+      confirmClear: "Are you sure you want to clear the history?",
+      noActivity: "No activity recorded.",
+    },
+
+    log: {
+      roleSelected: "Profile selected: {role}",
+      langChanged: "Language changed to: {lang}",
+      themeChanged: "Theme changed to: {theme}",
+      sessionOpened: "Session opened: {code}",
+      sessionClosed: "Session closed",
+      codeCopied: "Session code copied",
+      backToHome: "Returned to home",
     },
 
     student: {

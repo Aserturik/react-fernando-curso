@@ -4,7 +4,7 @@
 // - registerRender(render) conecta el pipeline
 // - triggerRender() re-renderiza cuando cambia el estado
 
-import { state, setUI, flashMessageKey } from "../state/state.js";
+import { state, setUI, flashMessageKey, addLogEvent } from "../state/state.js";
 
 import { createRolePage } from "./pages/RolePage.js";
 import { createTeacherPage } from "./pages/TeacherPage.js";
@@ -81,11 +81,13 @@ function createLanguageToggle() {
 
   btnES.addEventListener("click", () => {
     setLanguage("es");
+    addLogEvent("log.langChanged", { lang: "ES" });
     triggerRender();
   });
 
   btnEN.addEventListener("click", () => {
     setLanguage("en");
+    addLogEvent("log.langChanged", { lang: "EN" });
     triggerRender();
   });
 
@@ -104,7 +106,8 @@ function createThemeToggle() {
   themeBtn.append(icon);
 
   themeBtn.addEventListener("click", () => {
-    toggleTheme();
+    const next = toggleTheme();
+    addLogEvent("log.themeChanged", { theme: next.toUpperCase() });
     triggerRender();
   });
 
@@ -157,6 +160,7 @@ function createStatusBar() {
 
       try {
         await copyToClipboard(code);
+        addLogEvent("log.codeCopied");
         flashMessageKey("status.codeCopied", 1500);
         triggerRender();
       } catch {
