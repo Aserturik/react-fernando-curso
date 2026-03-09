@@ -9,6 +9,7 @@ import { state, setUI, flashMessageKey, addLogEvent } from "../state/state.js";
 import { createRolePage } from "./pages/RolePage.js";
 import { createTeacherPage } from "./pages/TeacherPage.js";
 import { createStudentPage } from "./pages/StudentPage.js";
+import { createActivityLog } from "./components/ActivityLog.js";
 
 import { registerRender, triggerRender } from "./render.js";
 import { toggleTheme } from "../theme/theme.js";
@@ -31,8 +32,17 @@ function render() {
   const app = document.createElement("div");
   app.className = "app";
 
-  app.append(createHeader(), createStatusBar(), createMain());
+  app.append(createHeader(), createStatusBar(), createMain(), createFooter());
   mountEl.append(app);
+}
+
+function createFooter() {
+  const footer = document.createElement("footer");
+  footer.className = "footer container";
+  footer.style.paddingBottom = "2rem";
+
+  footer.append(createActivityLog());
+  return footer;
 }
 
 function createHeader() {
